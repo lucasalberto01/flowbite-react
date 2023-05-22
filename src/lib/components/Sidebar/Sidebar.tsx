@@ -1,7 +1,8 @@
 import classNames from 'classnames';
-import type { ComponentProps, ElementType, FC, PropsWithChildren } from 'react';
+import { useRef, type ComponentProps, type ElementType, type FC, type PropsWithChildren } from 'react';
 import type { DeepPartial } from '..';
 import { mergeDeep } from '../../helpers/mergeDeep';
+import { useOutsideClick } from '../../hooks';
 import type { FlowbiteBoolean } from '../Flowbite/FlowbiteTheme';
 import { useTheme } from '../Flowbite/ThemeContext';
 import type { FlowbiteSidebarCollapseTheme } from './SidebarCollapse';
@@ -35,6 +36,7 @@ export interface SidebarProps extends PropsWithChildren, ComponentProps<'div'> {
   collapseBehavior?: 'collapse' | 'hide';
   collapsed?: boolean;
   theme?: DeepPartial<FlowbiteSidebarTheme>;
+  onClose?: () => void;
 }
 
 const SidebarComponent: FC<SidebarProps> = ({
@@ -44,13 +46,18 @@ const SidebarComponent: FC<SidebarProps> = ({
   collapsed: isCollapsed = false,
   theme: customTheme = {},
   className,
+  onClose = () => null,
   ...props
 }) => {
   const theme = mergeDeep(useTheme().theme.sidebar, customTheme);
 
+  const sidebarRef = useRef(null);
+  useOutsideClick(sidebarRef, onClose);
+
   return (
     <SidebarContext.Provider value={{ isCollapsed }}>
       <Component
+        ref={sidebarRef}
         aria-label="Sidebar"
         hidden={isCollapsed && collapseBehavior === 'hide'}
         className={classNames(theme.root.base, theme.root.collapsed[isCollapsed ? 'on' : 'off'], className)}
